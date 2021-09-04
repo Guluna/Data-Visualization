@@ -1,0 +1,157 @@
+<h1 id="datavisualizationwithpythonplotlyandgriddb">Data visualization with Python Plotly and GridDB</h1>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>In this age of technology, the amount of data being generated and gathered is growing in multitudes. However, this data does not hold any value until it is transformed from data to information through proper analysis. But the story does not end here, because the insights gained from analysis are further required to be communicated to the decision makers. Therefore, good visualizations are an integral part of data analysis as they help comprehend vast amounts of data in a glance and consequently help make effective decisions for the future. So the aim of this blog is to show you how to make high quality visualizations in Plotly after accessing data stored in the GridDB.</p>
+
+<h2 id="connectingwithgriddbusingpython">Connecting with GridDB using Python</h2>
+
+<h2 id="overviewofthedataset">Overview of the dataset</h2>
+
+<p>The original source of dataset (ted_main.csv) can be found <a href="https://www.kaggle.com/rounakbanik/ted-talks">here</a>. There are a total of 17 columns in the dataset but in this blog we are only going to focus only on the following six features:</p>
+
+<ul>
+<li><strong>Duration</strong> – the duration of the talk in seconds</li>
+
+<li><strong>Event</strong> – the TED/TEDx event where the talk took place</li>
+
+<li><strong>Views</strong> – total number of times a talk is viewed</li>
+
+<li><strong>Comments</strong> – the number of first level comments made on the talk</li>
+
+<li><strong>Num_speaker</strong> – the number of speakers in the talk</li>
+
+<li><strong>Published_date</strong> – UNIX timestamp for publication of the talk</li>
+</ul>
+
+<p>A snapshot of few sample rows from this dataset is given below:
+<img src="https://i.ibb.co/jV7nd8Z/head.png" alt="head rows" /></p>
+
+<p>First let us perform a qualitative check on the dataset for the missing values. From the  figure below, we observe that there are not any missing/NULL values in our dataset. </p>
+
+<p><img src="https://i.ibb.co/BsSfFjT/Relevant-columns.png" alt="Relevant Columns" /></p>
+
+<p>Before moving on to the visualization stage, some preprocessing is required to done for the following columns:</p>
+
+<h3 id="convertingdurationcolumnvaluesfromsecondstominutes">Converting Duration column values from seconds to minutes</h3>
+
+<pre><code class="python language-python">    data_relevant['duration_minutes'] = data_relevant['duration']/60
+</code></pre>
+
+<p>From screen shot below, we observe that shortest speech was only 2.25 minutes long whereas longest speech was 87 minutes long. Mean speech time is 13.77 minutes.</p>
+
+<p><img src="https://i.ibb.co/xD5ZVsN/duration.png" alt="Duration" /></p>
+
+<h3 id="extractingyearvaluesfrompublished_datecolumn">Extracting Year values from Published_date column</h3>
+
+<p>Published<em>date column is given in the Unix timestamp format so first we convert it to pandas day-month-year format and then extract only the year value, saving it into a new column called year</em>released.</p>
+
+<pre><code class="python language-python">    data_relevant['date_normal'] = 
+    data_relevant['published_date'].apply(lambda x: 
+    datetime.datetime.fromtimestamp(int(x)).strftime('%d-%m-%Y'))
+</code></pre>
+
+<p>Now lets get started with creating beautiful visualizations in plotly.</p>
+
+<h2 id="whatisplotly">What is Plotly?</h2>
+
+<p>Plotly for python is an open source, free data visualization library. It is used to build a broad variety of interactive charts ranging from basic charts to statistical charts to financial charts to Geographical map charts with minimal lines of code. </p>
+
+<p>We can call plotly package using any of the following two interfaces:</p>
+
+<ul>
+<li>Plotly Express: a high level API to build powerful graphs using very few lines of code (released in 2019)</li>
+
+<li>Plotly Graph Object: a low level API for more graph customizations. Plotly express is actually a high level wrapper for Plotly Graph Objects library</li>
+</ul>
+
+<p>We can import these in our python code as px and go like this:</p>
+
+<pre><code class="python language-python">    import plotly.express as px
+    import plotly.graph_objects as go
+</code></pre>
+
+<p>One core concept when using Plotly is the figure object which stores all the parameters that dictate how our chart will come together. </p>
+
+<h2 id="analysisofthedatasetusingvisualizationsinplotly">Analysis of the dataset using Visualizations in Plotly</h2>
+
+<h3 id="basiccharts">Basic Charts</h3>
+
+<p>Suppose we want to find out if the number of Ted talks events held each year are increasing or decreasing with time. How do we do that?</p>
+
+<p>We can call px.line() function to draw a line chart with year on x-axis and total number of events held on y-axis. The item returned by this function is a Figure object. Next we are adding a custom title for this chart and center-aligning it by calling update<em>layout() on this Figure object. We can also choose a template here e.g. plotly</em>dark to change the background color.</p>
+
+<p>Last step is to display this chart on screen by calling show() on the Figure object and here is the result. We can hover over our cursor at a specific point on this line to get exact x and y axis details.</p>
+
+<pre><code class="python language-python">    line_plot = px.line(year_events, x='year_released', y='event', labels=dict(year_released="Year", event="Events Held"))
+    line_plot.update_layout(title_text='TED Events held per year (2006 - 2017)', title_x=0.5, template='plotly_dark')
+    line_plot.update_traces(mode='lines+markers')
+</code></pre>
+
+<!-- Code for static image 
+<div>
+    <a href="https://plotly.com/~amnagul/2/?share_key=nOj3wdiZeAAF2jKGVeieer" target="_blank" title="Line Plot" style="display: block; text-align: center;"><img src="https://plotly.com/~amnagul/2.png?share_key=nOj3wdiZeAAF2jKGVeieer" alt="Line Plot" style="max-width: 100%;width: 600px;"  width="600" onerror="this.onerror=null;this.src='https://plotly.com/404.png';" /></a>
+    <script data-plotly="amnagul:2" sharekey-plotly="nOj3wdiZeAAF2jKGVeieer" src="https://plotly.com/embed.js" async></script>
+</div>
+-->>
+
+<div align="center"></p><iframe width="600" height="400" frameborder="0" scrolling="no" src="https://chart-studio.plotly.com/~amnagul/2.embed"></iframe></div>
+
+<p>So coming back towards the answer to the question posed above, we are able to depict that the number of events held had an increasing trend from 2006 to 2012 and a decreasing trend after 2012 till 2017 with just 3 lines of code.</p>
+
+<p>Next let’s find out what are the top 10 most viewed TED events. The bar chart below depicts this information in a neat and concise manner. TED2013 stands out as the most popular event with 177.3 Million views.</p>
+
+<div>
+    <a href="https://plotly.com/~amnagul/6/?share_key=ogUJLMqH8KPON9XfZTj7qz" target="_blank" title="Bar Plot most viewed events" style="display: block; text-align: center;"><img src="https://plotly.com/~amnagul/6.png?share_key=ogUJLMqH8KPON9XfZTj7qz" alt="Bar Plot most viewed events" style="max-width: 100%;width: 600px;"  width="600" onerror="this.onerror=null;this.src='https://plotly.com/404.png';" /></a>
+    <script data-plotly="amnagul:6" sharekey-plotly="ogUJLMqH8KPON9XfZTj7qz" src="https://plotly.com/embed.js" async></script>
+</div>
+
+<p>The same information can also be displayed in the form of horizontal bar chart if you prefer.</p>
+
+<hr />
+
+<hr />
+
+<p>Instead of looking at data for all the years, lets drill down into data for one year (lets say 2012) and find out the names and percentages of top 5 most viewed events in the form of a donut chart below.</p>
+
+<hr />
+
+<hr />
+
+<h3 id="statisticalcharts">Statistical Charts</h3>
+
+<p>Now that we have fundamental understanding of essential charts in plotly, lets visualize our data through the lens of statistical charts too.</p>
+
+<h2 id="firstletsfindoutifthereisarelationshipbetweenournumericalvaluedcolumnsviewsandcommentswewillbeusingtheentiredatasethere">First lets find out if there is a relationship between our numerical valued columns views and comments. We will be using the entire dataset here. </h2>
+
+<hr />
+
+<h2 id="wecanplotatrendlinetogetanideaaboutthegeneraldirectiontrendlinesketchedabovehasapositiveslopesoingeneralmostviewedtalksaretheonesthatgotthemostcomments">We can plot a trendline to get an idea about the general direction. Trendline sketched above has a positive slope so in general, most viewed talks are the ones that got the most comments.</h2>
+
+<hr />
+
+<h2 id="athirddimensionieduration_minutescanalsobeaddedtodisplaythelengthofeachtalkonthesamescatterplotincolorcodedfashion">A third dimension i.e. duration_minutes can also be added to display the length of each talk on the same scatter plot in color coded fashion.</h2>
+
+<hr />
+
+<h2 id="furthermoreyoucanquicklyconvertthisscatterplotintoabubbleplotbyaddingthesizeparameternowthesizeofthebubbleisproportionaltonumberofspeakersinthatparticulartalk">Furthermore you can quickly convert this scatter plot into a bubble plot by adding the size parameter. Now, the size of the bubble is proportional to number of speakers in that particular talk.</h2>
+
+<hr />
+
+<h2 id="anotherverycommontypeofstatisticalchartishistogramthatdepictsthedistributionsofvaluesforafeatureinthedataset">Another very common type of statistical chart is histogram that depicts the distributions of values for a feature in the dataset.</h2>
+
+<hr />
+
+<p>Yet another very useful statistical chart is a box plot that depicts minimum, maximum, median and quartile values as shown below.</p>
+
+<h3 id="animation">Animation</h3>
+
+<p>Plotly also supports animated figures through animation_frame argument as shown below.</p>
+
+<h3 id="3dplot">3D plot</h3>
+
+<p>Using a single line of code, we can create this 3 dimensional scatter plot figure which you can move and drag around with the help of your cursor.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Voila! Now you know how incredibly easy it is to create interactive plots and animations in no time with plotly. Do bear in mind though that we have only shown you only a handful of customizations available in plotly package. With loads of other options available, you can play around to your heart’s content and create stunning visualizations for effectively communicating key insights with your audience.</p>
